@@ -4,6 +4,7 @@ import cors from 'cors'
 import { create } from 'express-handlebars'
 
 // ROUTES
+import userRouter from './routes/user.router.js'
 
 import * as path from 'path'
 import { fileURLToPath } from 'url'
@@ -27,12 +28,6 @@ app.use(express.urlencoded({ extended: true }))
 
 app.use('/public', express.static(path.join(__dirname, '../public')))
 
-app.get('/', (req, res) => {
-	res.send({ message: 'ok' })
-})
-
-app.get('/home', async (req, res) => {
-	res.render('home')
-})
+app.use('/api/v1/users', userRouter)
 
 export default app
