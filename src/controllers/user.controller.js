@@ -1,13 +1,14 @@
+import Address from '../models/Address.model.js'
 import User from '../models/User.model.js'
 
 export const addUser = async (req, res) => {
 	try {
-		const { username, age, role, email, password } = req.body
+		const { username, age, role, email, password, residence } = req.body
 
 		const [user, created] = await User.findOrCreate({
 			where: { email },
 			defaults: {
-				username, age, role, email, password
+				username, age, role, email, password, residence
 			}
 		})
 
@@ -15,6 +16,22 @@ export const addUser = async (req, res) => {
 			return res.status(400).send({
 				code: 400,
 				message: `User '${user.email}' already exists!`
+			})
+		}
+
+		const [foundStreet, createdStreet] = await Address.findOrCreate({
+			where: {
+				street: residence
+			},
+			defaults: {
+				street: residence, residente_id: user.id
+			}
+		})
+
+		if (!createdStreet) {
+			return res.status(400).send({
+				code: 400,
+				message: `Address '${foundStreet.street}' already exists!`
 			})
 		}
 
@@ -33,6 +50,11 @@ export const addUser = async (req, res) => {
 export const getAllUsers = async (req, res) => {
 	try {
 		const users = await User.findAll({
+			include: {
+				model: Address,
+				as: 'residence',
+				attributes: ['street']
+			},
 			attributes: {
 				exclude: ['password', 'createdAt', 'updatedAt', 'role']
 			},
@@ -49,7 +71,7 @@ export const getAllUsers = async (req, res) => {
 	} catch (err) {
 		return res.status(400).send({
 			code: 400,
-			message: `💩, Error to get all users. ${err.message}`
+			message: `💩, Error to get all users. ${err}`
 		})
 	}
 }
@@ -57,7 +79,12 @@ export const getAllUsers = async (req, res) => {
 export const getUserById = async (req, res) => {
 	try {
 		const { id } = req.params
-		const found = await User.findByPk(id)
+		const found = await User.findByPk(id, {
+			include: [{
+				model: Address,
+				as: 'residence'
+			}]
+		})
 
 		if (!found) {
 			return res
@@ -68,12 +95,12 @@ export const getUserById = async (req, res) => {
 		res.status(201).send({
 			code: 201,
 			message: `Get user '${found.username}', successfully`,
-			data: { username: found.username, age: found.age, email: found.email }
+			data: { username: found.username, age: found.age, email: found.email, residence: found.residence.street }
 		})
 	} catch (err) {
 		return res.status(400).send({
 			code: 400,
-			message: `💩, Error to find user by id. ${err.message}`
+			message: `💩, Error to find user by id. ${err}`
 		})
 	}
 }
@@ -106,8 +133,14 @@ export const getUserByEmail = async (req, res) => {
 export const updateUserById = async (req, res) => {
 	try {
 		const { id } = req.params
-		const { username, age, role, email, password } = req.body
-		const found = await User.findByPk(id)
+		const { username, age, role, email, password, residence } = req.body
+		const found = await User.findByPk(id, {
+			include: [{
+				model: Address,
+				as: 'residence',
+				attributes: ['street']
+			}]
+		})
 
 		if (!found) {
 			return res
@@ -115,15 +148,27 @@ export const updateUserById = async (req, res) => {
 				.send({ code: 404, message: `User with '${id}' not found!` })
 		}
 
+		const foundAddress = await Address.findOne({
+			where: {
+				street: found.residence.street
+			},
+			attributes: {
+				exclude: ['createdAt', 'updatedAt']
+			}
+		})
+
+		await foundAddress.update({ street: residence }, {
+			where: { street: found.residence.street }
+		})
+
 		const newUser = await found.update({
 			username,
 			age,
 			role,
 			email,
-			password
+			password,
+			[residence.street]: residence
 		}, { where: { id } })
-
-		console.log(newUser)
 
 		res.status(201).send({
 			code: 201,
@@ -131,13 +176,14 @@ export const updateUserById = async (req, res) => {
 			data: {
 				username: newUser.username,
 				age: newUser.age,
-				email: newUser.email
+				email: newUser.email,
+				residence
 			}
 		})
 	} catch (err) {
 		return res.status(400).send({
 			code: 400,
-			message: `💩, Error to update user by id. ${err.message}`
+			message: `💩, Error to update user by id. ${err}`
 		})
 	}
 }

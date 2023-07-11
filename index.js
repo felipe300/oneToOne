@@ -2,7 +2,7 @@ import sequelize from './src/config/db.config.js'
 import app from './src/app.js'
 import 'dotenv/config'
 
-import './src/models/User.model.js'
+import './src/models/Associations.js'
 
 const PORT = process.env.PORT || 5000
 
