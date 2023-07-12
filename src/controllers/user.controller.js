@@ -1,14 +1,15 @@
 import Address from '../models/Address.model.js'
+import Country from '../models/Country.model.js'
 import User from '../models/User.model.js'
 
 export const addUser = async (req, res) => {
 	try {
-		const { username, age, role, email, password, residence } = req.body
+		const { username, age, role, email, password, residence, country } = req.body
 
 		const [user, created] = await User.findOrCreate({
 			where: { email },
 			defaults: {
-				username, age, role, email, password, residence
+				username, age, role, email, password, residence, country
 			}
 		})
 
@@ -35,6 +36,22 @@ export const addUser = async (req, res) => {
 			})
 		}
 
+		const [foundCountry, createdCountry] = await Country.findOrCreate({
+			where: {
+				country
+			},
+			defaults: {
+				country, country_id: user.id
+			}
+		})
+
+		if (!createdCountry) {
+			return res.status(400).send({
+				code: 400,
+				message: `Country '${foundCountry.country}' already exists!`
+			})
+		}
+
 		res.status(201).send({
 			code: 201,
 			message: 'User created successfully'
@@ -50,11 +67,15 @@ export const addUser = async (req, res) => {
 export const getAllUsers = async (req, res) => {
 	try {
 		const users = await User.findAll({
-			include: {
+			include: [{
 				model: Address,
 				as: 'residence',
 				attributes: ['street']
-			},
+			}, {
+				model: Country,
+				as: 'nationality',
+				attributes: ['country']
+			}],
 			attributes: {
 				exclude: ['password', 'createdAt', 'updatedAt', 'role']
 			},
@@ -83,6 +104,9 @@ export const getUserById = async (req, res) => {
 			include: [{
 				model: Address,
 				as: 'residence'
+			}, {
+				model: Country,
+				as: 'nationality'
 			}]
 		})
 
@@ -95,7 +119,13 @@ export const getUserById = async (req, res) => {
 		res.status(201).send({
 			code: 201,
 			message: `Get user '${found.username}', successfully`,
-			data: { username: found.username, age: found.age, email: found.email, residence: found.residence.street }
+			data: {
+				username: found.username,
+				age: found.age,
+				email: found.email,
+				country: found.nationality.country,
+				residence: found.residence.street
+			}
 		})
 	} catch (err) {
 		return res.status(400).send({
@@ -133,12 +163,16 @@ export const getUserByEmail = async (req, res) => {
 export const updateUserById = async (req, res) => {
 	try {
 		const { id } = req.params
-		const { username, age, role, email, password, residence } = req.body
+		const { username, age, role, email, password, residence, country: nationality } = req.body
 		const found = await User.findByPk(id, {
 			include: [{
 				model: Address,
 				as: 'residence',
 				attributes: ['street']
+			}, {
+				model: Country,
+				as: 'nationality',
+				attributes: ['country']
 			}]
 		})
 
@@ -161,13 +195,27 @@ export const updateUserById = async (req, res) => {
 			where: { street: found.residence.street }
 		})
 
+		const foundCountry = await Country.findOne({
+			where: {
+				country: found.nationality.country
+			},
+			attributes: {
+				exclude: ['createdAt', 'updatedAt']
+			}
+		})
+
+		await foundCountry.update({ country: nationality }, {
+			where: { country: found.nationality.country }
+		})
+
 		const newUser = await found.update({
 			username,
 			age,
 			role,
 			email,
 			password,
-			[residence.street]: residence
+			[residence.street]: residence,
+			[nationality.country]: nationality
 		}, { where: { id } })
 
 		res.status(201).send({
@@ -177,7 +225,8 @@ export const updateUserById = async (req, res) => {
 				username: newUser.username,
 				age: newUser.age,
 				email: newUser.email,
-				residence
+				residence,
+				country: nationality
 			}
 		})
 	} catch (err) {
