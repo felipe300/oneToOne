@@ -7,6 +7,7 @@ import { create } from 'express-handlebars'
 import userRouter from './routes/user.router.js'
 import addressRouter from './routes/address.router.js'
 import countryRouter from './routes/country.router.js'
+import postRouter from './routes/post.router.js'
 
 import * as path from 'path'
 import { fileURLToPath } from 'url'
@@ -33,5 +34,6 @@ app.use('/public', express.static(path.join(__dirname, '../public')))
 app.use('/api/v1/users', userRouter)
 app.use('/api/v1/address', addressRouter)
 app.use('/api/v1/countries', countryRouter)
+app.use('/api/v1/posts', postRouter)
 
 export default app

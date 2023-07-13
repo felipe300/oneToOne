@@ -1,5 +1,6 @@
 import Address from '../models/Address.model.js'
 import Country from '../models/Country.model.js'
+import Post from '../models/Post.model.js'
 import User from '../models/User.model.js'
 
 export const addUser = async (req, res) => {
@@ -75,6 +76,10 @@ export const getAllUsers = async (req, res) => {
 				model: Country,
 				as: 'nationality',
 				attributes: ['country']
+			}, {
+				model: Post,
+				as: 'publications',
+				attributes: ['title', 'content', 'createdAt']
 			}],
 			attributes: {
 				exclude: ['password', 'createdAt', 'updatedAt', 'role']
@@ -107,6 +112,10 @@ export const getUserById = async (req, res) => {
 			}, {
 				model: Country,
 				as: 'nationality'
+			}, {
+				model: Post,
+				as: 'publications',
+				attributes: ['title', 'content', 'createdAt']
 			}]
 		})
 
@@ -124,7 +133,8 @@ export const getUserById = async (req, res) => {
 				age: found.age,
 				email: found.email,
 				country: found.nationality.country,
-				residence: found.residence.street
+				residence: found.residence.street,
+				publications: found.publications
 			}
 		})
 	} catch (err) {
