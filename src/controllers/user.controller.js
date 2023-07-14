@@ -26,7 +26,7 @@ export const addUser = async (req, res) => {
 				street: residence
 			},
 			defaults: {
-				street: residence, residente_id: user.id
+				street: residence, residenteId: user.id
 			}
 		})
 
@@ -42,7 +42,7 @@ export const addUser = async (req, res) => {
 				country
 			},
 			defaults: {
-				country, country_id: user.id
+				country, countryId: user.id
 			}
 		})
 
@@ -65,7 +65,7 @@ export const addUser = async (req, res) => {
 	}
 }
 
-export const getAllUsers = async (req, res) => {
+export const getAllUsers = async (_req, res) => {
 	try {
 		const users = await User.findAll({
 			include: [{

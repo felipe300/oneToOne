@@ -1,7 +1,7 @@
 import Address from '../models/Address.model.js'
 import User from '../models/User.model.js'
 
-export const getAllAddress = async (req, res) => {
+export const getAllAddress = async (_req, res) => {
 	try {
 		const addresses = await Address.findAll({
 			include: {

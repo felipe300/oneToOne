@@ -7,18 +7,18 @@ import Post from './Post.model.js'
 User.hasOne(Address, {
 	as: 'residence',
 	onDelete: 'cascade',
-	foreignKey: 'residente_id'
+	foreignKey: 'residenteId'
 })
 
-Address.belongsTo(User, { as: 'residente', foreignKey: 'residente_id' })
+Address.belongsTo(User, { as: 'residente', foreignKey: 'residenteId' })
 
 User.hasOne(Country, {
 	as: 'nationality',
 	onDelete: 'cascade',
-	foreignKey: 'country_id'
+	foreignKey: 'countryId'
 })
 
-Country.belongsTo(User, { as: 'citizen', foreignKey: 'country_id' })
+Country.belongsTo(User, { as: 'citizen', foreignKey: 'countryId' })
 
 // ONE_TO_MANY
 User.hasMany(Post, {

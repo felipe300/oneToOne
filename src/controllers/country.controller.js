@@ -1,7 +1,7 @@
 import Country from '../models/Country.model.js'
 import User from '../models/User.model.js'
 
-export const getAllCountries = async (req, res) => {
+export const getAllCountries = async (_req, res) => {
 	try {
 		const countries = await Country.findAll({
 			include: {
