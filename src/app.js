@@ -8,6 +8,7 @@ import userRouter from './routes/user.router.js'
 import addressRouter from './routes/address.router.js'
 import countryRouter from './routes/country.router.js'
 import postRouter from './routes/post.router.js'
+import authRouter from './routes/auth.router.js'
 
 import * as path from 'path'
 import { fileURLToPath } from 'url'
@@ -35,5 +36,6 @@ app.use('/api/v1/users', userRouter)
 app.use('/api/v1/address', addressRouter)
 app.use('/api/v1/countries', countryRouter)
 app.use('/api/v1/posts', postRouter)
+app.use('/', authRouter)
 
 export default app
